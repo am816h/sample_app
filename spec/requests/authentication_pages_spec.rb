@@ -118,8 +118,6 @@ describe "Authentication" do
           end
         end
       end
-<<<<<<< HEAD
-=======
 
       describe "in the Microposts controller" do
 
@@ -133,7 +131,6 @@ describe "Authentication" do
           specify { expect(response).to redirect_to(signin_path) }
         end
       end
->>>>>>> user-microposts
     end
 
     describe "as wrong user" do
