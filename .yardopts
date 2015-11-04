@@ -1,0 +1,8 @@
+-c
+--no-private
+--protected
+--readme README.md
+--title railstutorial.jp
+--output-dir ./doc
+--markup markdown
+app/**/*.rb
