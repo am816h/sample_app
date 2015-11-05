@@ -17,6 +17,36 @@ describe "Static pages" do
     #it_should_behave_like "all static_pages"
     it { should_not have_title('| Home') }
 
+    describe "0 microposts" do
+      let(:user) { FactoryGirl.create(:user) }
+      before do
+        sign_in user
+        visit root_path
+      end
+      it { should have_content("0 microposts") }
+    end
+
+    describe "1 micropost" do
+      let(:user) { FactoryGirl.create(:user) }
+      before do
+        FactoryGirl.create(:micropost, user: user, content: "Lorem ipsum")
+        sign_in user
+        visit root_path
+      end
+      it { should have_content("1 micropost") }
+    end
+
+    describe "2 microposts" do
+      let(:user) { FactoryGirl.create(:user) }
+      before do
+        FactoryGirl.create(:micropost, user: user, content: "Lorem ipsum")
+        FactoryGirl.create(:micropost, user: user, content: "Lorem ipsum")
+        sign_in user
+        visit root_path
+      end
+      it { should have_content("2 microposts") }
+    end
+
     describe "for signed-in users" do
       let(:user) { FactoryGirl.create(:user) }
       before do
