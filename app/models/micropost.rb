@@ -8,10 +8,8 @@
 #
 # # 使い方
 # ```
-# micropost = Micropost.new(
-#   content: "foobar",
-#   user_id: User.find(1).id
-# )
+# user = User.new(...)
+# micropost = user.microposts.build(content: "foobar")
 # ```
 #
 class Micropost < ActiveRecord::Base
@@ -42,4 +40,19 @@ class Micropost < ActiveRecord::Base
   validates :content, presence: true, length: { maximum: 140 }
   validates :user_id, presence: true
   # @!endgroup
+
+  #
+  # 与えられたユーザーがフォローしているユーザーのマイクロポスト一覧を返す。
+  #
+  # @param [User] ユーザー
+  # @return [Array] 与えられたユーザーがフォローしているユーザーのマイクロポスト一覧
+  # @example
+  # ```
+  #
+  # ```
+  #
+  def self.from_users_followed_by(user)
+    followed_user_ids = "SELECT followed_id FROM relationships WHERE follower_id = :user_id"
+    where("user_id IN (#{followed_user_ids}) OR user_id = :user_id", user_id: user)
+  end
 end

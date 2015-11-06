@@ -4,7 +4,7 @@
 # ユーザーモデル
 #
 # - システムのユーザーを表す
-# - ユーザー情報と自身が登録したマイクロポストの一覧を保持する
+# - ユーザー情報、自身が登録したマイクロポストの一覧、自身がフォローしているユーザーの一覧を保持する
 #
 # # 使い方
 # ```
@@ -18,6 +18,7 @@
 #
 class User < ActiveRecord::Base
 
+  # @!group Attributes
   #
   # @!attribute name
   #   @return [String] ユーザー名
@@ -40,12 +41,22 @@ class User < ActiveRecord::Base
   # @!attribute admin
   #   @return [Boolean] 管理者フラグ
   #
+  # @!endgroup
 
   # 正しいメールアドレスを表す正規表現
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z/i
 
   # @!group Relations
   has_many :microposts, dependent: :destroy
+  has_many :relationships, foreign_key: "follower_id",
+                           dependent: :destroy
+  has_many :followed_users, through: :relationships,
+                            source: :followed
+  has_many :reverse_relationships, foreign_key: "followed_id",
+                                   class_name: "Relationship",
+                                   dependent: :destroy
+  has_many :followers, through: :reverse_relationships,
+                       source: :follower
   # @!endgroup
 
   # @!group Before actions
@@ -73,7 +84,53 @@ class User < ActiveRecord::Base
   # ```
   #
   def feed
-    Micropost.where("user_id = ?", id)
+    Micropost.from_users_followed_by(self)
+  end
+
+  #
+  # 指定されたユーザーをフォローしているかどうかを返す
+  #
+  # @param [User] other_user フォローしているかどうかをテストするユーザー
+  # @return [Boolean] 指定されたユーザーをフォローしているかどうか
+  # @example
+  # ```
+  # user = User.find(1)
+  # other_user = User.find(2)
+  # user.following?(other_user)
+  # ```
+  #
+  def following?(other_user)
+    relationships.find_by(followed_id: other_user.id)
+  end
+
+  #
+  # 指定されたユーザーをフォローする
+  #
+  # @param [User] フォローするユーザー
+  # @example
+  # ```
+  # user = User.find(1)
+  # other_user = User.find(2)
+  # user.follow!(other_user)
+  # ```
+  #
+  def follow!(other_user)
+    relationships.create!(followed_id: other_user.id)
+  end
+
+  #
+  # 指定されたユーザーをフォロー解除する
+  #
+  # @param [User] フォロー解除するユーザー
+  # @example
+  # ```
+  # user = User.find(1)
+  # other_user = User.find(2)
+  # user.unfollow!(other_user)
+  # ```
+  #
+  def unfollow!(other_user)
+    relationships.find_by(followed_id: other_user.id).destroy
   end
 
   #
